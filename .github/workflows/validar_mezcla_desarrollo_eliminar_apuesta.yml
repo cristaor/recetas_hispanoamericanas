@@ -1,0 +1,56 @@
+name: prueba mezclar prueba 5 con master
+on:
+  push:
+jobs:
+  cargar_dependencias:
+    name: Pruebas_dependencias
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout de repositorio
+      uses: actions/checkout@v2
+    - name: Configuración de entorno de python
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.7'
+    - name: Instalación de librerías y dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: validar push
+      if: ${{ contains(github.event.head_commit.message, 'FUNCIONALIDAD_TERMINADA') == false }}
+      run:  |
+        echo "NO esta terminada la FUNCIONALIDAD"
+    - name: Mezcla rama1 -> rama2
+      if: ${{ contains(github.event.head_commit.message, 'FUNCIONALIDAD_TERMINADA')}}
+      uses: tukasz/direct-merge-action@master
+      with:
+        GITHUB_TOKEN: ${{ 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 }}
+        source-branch: desarrollo
+        target-branch: ${{ github.ref }}
+    - name: Correr pruebas
+      id: correr-pruebas
+      run: |
+        python -m unittest -v tests/test_*
+    - name: Validar resultado con errores
+      if: ${{ failure() }}
+      env:
+        MENSAJE_ERROR: Una o varias pruebas fallaron
+      run: echo "::set-output name=respuesta::${MENSAJE_ERROR}"
+    - name: Validar resultado sin errores
+      if: ${{ success() }}
+      env:
+        MENSAJE_EXITO: Todas las pruebas fueron exitosas
+      run: echo "::set-output name=respuesta::${MENSAJE_EXITO}"
+
+  mezclar_rama2:
+    needs: cargar_dependencias
+    name: Mezclar en rama desarrollo
+    if: ${{ contains(github.event.head_commit.message, 'FUNCIONALIDAD_TERMINADA') }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Mezcla rama2 -> rama1
+      uses: tukasz/direct-merge-action@master
+      with:
+        GITHUB_TOKEN: ${{ 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 }}
+        source-branch: ${{ github.ref }}
+        target-branch: desarrollo
