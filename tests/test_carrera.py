@@ -364,7 +364,7 @@ class CarreraTestCase(unittest.TestCase):
             probabilidad = 0.45
             nombre_competidor = self.data_factory.name()
             creado=self.gestor.crear_competidor(carrera_id, nombre_competidor, probabilidad)
-            print("Creado ",str(i),str(creado))
+            #print("Creado ",str(i),str(creado))
             if creado:
                 competidor = self.session.query(Competidor).filter(Competidor.nombre == nombre_competidor).first().id
                 nombre_apostador1 = self.data_factory.name()
