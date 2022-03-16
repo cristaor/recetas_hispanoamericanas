@@ -112,9 +112,13 @@ class Vista_lista_apostadores(QWidget):
 
         #Ciclo para poblar la tabla
         numero_fila = 0
-        for apostador in self.apostadores:
+        for apostador2 in self.apostadores:
+            if type(apostador2) is dict:
+                apostador=apostador2
+            else:
+                apostador=dict(apostador2)
 
-            etiqueta_nombre=QLabel(apostador["Nombre"])          
+            etiqueta_nombre=QLabel(apostador["nombre"])
             etiqueta_nombre.setWordWrap(True)
             etiqueta_nombre.setFixedSize(90,40)
             self.distribuidor_tabla_apostadores.addWidget(etiqueta_nombre, numero_fila+1,0, Qt.AlignTop)
