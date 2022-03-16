@@ -24,7 +24,7 @@ jobs:
       if: ${{ contains(github.event.head_commit.message, 'FUNCIONALIDAD_TERMINADA')}}
       uses: tukasz/direct-merge-action@master
       with:
-        GITHUB_TOKEN: ${{ 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 }}
+        GITHUB_TOKEN: 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
         source-branch: desarrollo
         target-branch: ${{ github.ref }}
     - name: Correr pruebas
@@ -51,6 +51,6 @@ jobs:
     - name: Mezcla rama2 -> rama1
       uses: tukasz/direct-merge-action@master
       with:
-        GITHUB_TOKEN: ${{ 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 }}
+        GITHUB_TOKEN: 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
         source-branch: ${{ github.ref }}
         target-branch: desarrollo
