@@ -5,19 +5,22 @@ from src.modelo.apostador import Apostador
 from src.modelo.declarative_base import engine, Base, session
 from sqlalchemy import text
 
+
 class GestorEporra():
 
     def __init__(self):
         Base.metadata.create_all(engine)
         self.session = session
 
-    #nueva abstraccion para listar contenido envarias pantallas
     def listar_registros(self,clase, atributo, filtro):
         busqueda2 = session.execute(text("SELECT * from " + str(clase) + " " + filtro +  " order by " + atributo ))
         busqueda=busqueda2.mappings().all()
+        #pprint(busqueda)
         return busqueda
 
     def listar_carreras(self):
+        #carreras = self.session.query(Carrera).order_by(Carrera.nombre).all()
+        #return carreras
         return self.listar_registros('Carrera', 'nombre','')
 
     def crear_carrera(self, nombre):
@@ -41,9 +44,24 @@ class GestorEporra():
                 return False
 
     def dar_carrera(self, id_carrera):
+        """"if id_carrera<=0:
+            print("Carrera Nueva " + str(id_carrera))
+            return 0
+        else:
+           # print("Carrera " + str(id_carrera))
+            busqueda = session.query(Carrera).filter(Carrera.id_carrera == id_carrera).all()
+            if len(busqueda)==0:
+                return False
+            else:
+                return busqueda"""
         return self.dar_atributos_clase('Carrera', "Carreras", 'id_carrera', id_carrera)
 
     def listar_competidores(self, id_carrera):
+        #competidores=[]
+        #competidores= self.session.query(Competidor).filter(Competidor.carrera == id_carrera).order_by(Competidor.nombre).all()
+        #for competidor in competidores:
+         #   print ("Competidor " + competidor.nombre)
+        #return competidores
         return self.listar_registros('Competidor', 'nombre','where carrera=' + str(id_carrera))
 
     def crear_competidor(self, carrera, nombre, probabilidad):
@@ -86,15 +104,46 @@ class GestorEporra():
             return 0
 
     def dar_competidor(self, id_competidor):
+        """if id_competidor<=0:
+            print("Competidor Nuevo " + str(id_competidor))
+            return False
+        else:
+            #print("Competidor " + str(id_competidor))
+            busqueda = session.query(Competidor).filter(Competidor.id == id_competidor).all()
+            if len(busqueda)==0:
+                return False
+            else:
+                return busqueda"""
         return self.dar_atributos_clase('Competidor', "Competidores", 'id', id_competidor)
 
     def listarApuestasPorcarrera(self, id_carrera):
+        #competidores=[]
+        #apuestas= self.session.query(Apuesta).filter(Apuesta.carrera == id_carrera).all()
+        #busqueda2 = session.execute(text("SELECT * from Apuesta, Apostador  where Apuesta.carrera="+ str(id_carrera) + " and Apostador.id=Apuesta.apostador order by Apostador.nombre" ))
+        #apuestas=busqueda2.mappings().all()
+        #apuestas = self.session.query(Apuesta).filter(Apuesta.carrera == id_carrera).join(Apostador,Apostador.id==Apuesta.apostador).order_by(Apostador.nombre).all()
+        #for apuesta in apuestas:
+        #   print ("Apuesta " + str(apuesta.apostador))
+        #if len(apuestas) == 0:
+        #   print ("No tiene Apuestas asociadas")
+        #return apuestas
         return self.listar_registros('Apuesta, Apostador', 'Apostador.nombre','where Apuesta.carrera=' + str(id_carrera) + " and Apostador.id=Apuesta.apostador")
 
+
     def dar_apostador(self, id_apostador):
+        """if id_apostador<=0:
+            print("Apostador Nuevo " + str(id_apostador))
+            return False
+        else:
+            #print("Competidor " + str(id_competidor))
+            busqueda = session.query(Apostador).filter(Apostador.id == id_apostador).all()
+            if len(busqueda)==0:
+                return False
+            else:
+                return busqueda"""
         return self.dar_atributos_clase('Apostador', "Apostadores", 'id', id_apostador)
 
-    #abstraccion de varios metodos dar_*
+
     def dar_atributos_clase(self, clase, desc_clase, atributo, valor_atributo):
         if type(valor_atributo) is str:
             valor_atributo2=len(valor_atributo)
@@ -172,7 +221,6 @@ class GestorEporra():
             else:
                 return False
 
-
     def listar_apostadores_reporte(self, id_carrera):
          if (id_carrera <=0) or (not id_carrera):
              print("Carrera invalida")
@@ -190,7 +238,7 @@ class GestorEporra():
             print("EL ganador es " + str(ganador))
             apuestas=self.listarApuestasPorcarrera(id_carrera)
             lista_ganancias=[]
-            #print(apuestas)
+            print(apuestas)
             apostador_antiguo=""
             i=0
             ganancias_apostador=0
@@ -206,6 +254,9 @@ class GestorEporra():
                     ganancia = self.dar_ganancia_apostador(float(apuesta.valor), probabilidad)
                     #print("Gano " + str(ganancia))
                     ganancias_apostador+=ganancia
+                    #lista_ganancias.append({'nombre':apuesta.nombre,'valor':ganancia})
+                #else:
+                    #print("Perdio")
 
                 apostador_antiguo=apuesta.nombre
                 i=i+1
@@ -221,6 +272,7 @@ class GestorEporra():
             cuota=round(probabilidad / (1 - probabilidad),2)
             ganancia = round(valor + (valor/cuota),0)
             return ganancia
+
 
     def calcular_ganancia_casa(self, id_carrera):
         if (id_carrera <=0) or (not id_carrera):
@@ -244,3 +296,18 @@ class GestorEporra():
             print("ganacias ",total_ganancias," Apuestas ",total_apuestas)
 
             return saldo_casa
+
+    def crear_apostador(self, nombre):
+        if (len(nombre) <=0) or (len(nombre.strip())==0):
+            #print("Nombre invalido ")
+            return False
+        else:
+            busqueda = self.session.query(Apostador).filter(Apostador.nombre == nombre).all()
+            if len(busqueda) == 0:
+                apostador = Apostador(nombre = nombre)
+                self.session.add(apostador)
+                self.session.commit()
+                return True
+            else:
+                print("El apostador ya existe " + nombre)
+                return False
