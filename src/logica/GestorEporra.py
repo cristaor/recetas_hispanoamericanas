@@ -311,3 +311,25 @@ class GestorEporra():
             else:
                 print("El apostador ya existe " + nombre)
                 return False
+
+    def eliminar_carrera(self, id_carrera):
+        if (id_carrera <=0) or (not id_carrera):
+            print("Carrera invalida")
+            return False
+        else:
+            try:
+                carrera = session.query(Carrera).filter(Carrera.id_carrera == id_carrera).first()
+                busqueda=self.listarApuestasPorcarrera(id_carrera)
+                if len(busqueda)==0:
+                    session.delete(carrera)
+                    session.commit()
+                    return True
+                else:
+                    print("No se puede borrar, Tiene apuestas")
+                    return False
+            except:
+                return False
+
+
+
+

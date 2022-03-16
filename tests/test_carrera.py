@@ -9,6 +9,8 @@ from src.modelo.declarative_base import Session
 from faker import Faker
 import random
 
+
+
 class CarreraTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -21,19 +23,24 @@ class CarreraTestCase(unittest.TestCase):
         '''Crea una isntancia de Faker'''
         self.data_factory = Faker()
 
+
     def tearDown(self):
         '''Abre la sesión'''
         self.session = Session()
         '''Consulta todos los álbumes'''
-        
-        busqueda = self.session.query(Carrera).all()
+        busqueda = self.session.query(Competidor).all()
 
-        '''Borra todos los álbumes'''
-        for carrera in busqueda:
+        '''Borra todos los competidores'''
+        for competidor in busqueda:
+            self.session.delete(competidor)
+
+        busqueda2 = self.session.query(Carrera).all()
+
+        '''Borra todos los competidores'''
+        for carrera in busqueda2:
             self.session.delete(carrera)
 
         busqueda3 = self.session.query(Apostador).all()
-
 
         '''Borra todos los aspostadores'''
         for apostador in busqueda3:
@@ -47,6 +54,7 @@ class CarreraTestCase(unittest.TestCase):
 
         self.session.commit()
         self.session.close()
+
 
     def test_sin_carreras(self):
         #resultado = self.gestor.crear_carrera(nombre="")
@@ -136,7 +144,7 @@ class CarreraTestCase(unittest.TestCase):
             self.session.commit()
 
         resultado = self.gestor.listarApuestasPorcarrera(carrera_id)
-        self.assertEqual(len(resultado), 1)
+        self.assertIsNotNone(resultado)
 
     def test_carrera_con_apuestas_ordenadas_por_Apostador_alfabeticamente(self):
         nombre_carrera = self.data_factory.bs();
@@ -208,7 +216,7 @@ class CarreraTestCase(unittest.TestCase):
 
 
         self.assertEqual(resultado, True)
-    
+
     def test_listar_apostadores_reporte(self):
        apostadores =  self.gestor.listar_apostadores_reporte(0)
        self.assertNotEqual(len(apostadores), 0)
@@ -239,8 +247,8 @@ class CarreraTestCase(unittest.TestCase):
             self.gestor.crear_apuesta(carrera_id,valor_apuesta, competidor, apostador_c[0].id)
             self.gestor.crear_apuesta(carrera_id,valor_apuesta2, competidor, apostador_d[0].id)
 
-            
-            
+
+
             resultado = self.gestor.listar_apostadores_reporte(carrera_id)
 
             apostador_aux=self.gestor.dar_apostador(resultado[0].apostador)
@@ -248,8 +256,10 @@ class CarreraTestCase(unittest.TestCase):
 
             self.assertEqual(apostador_aux2[0].nombre, "Gabriel Arenas")
             self.assertEqual(apostador_aux[0].nombre, "Carlos Soler")
-    
+
+
     def test_validar_ganancia(self):
+
         nombre_carrera = self.data_factory.bs();
         resultado = self.gestor.crear_carrera(nombre_carrera)
         carrera_id = self.session.query(Carrera).filter(Carrera.nombre == nombre_carrera).first().id_carrera
@@ -260,35 +270,37 @@ class CarreraTestCase(unittest.TestCase):
         self.session.add(apostador1)
         self.session.add(apostador2)
         self.session.commit()
-        valor_apuesta = 100
-        valor_apuesta2 = 200
         apostador_c = self.gestor.dar_apostadorPorNombre("Carlos Soler")
         apostador_d = self.gestor.dar_apostadorPorNombre('Gabriel Arenas')
+        valor_apuesta = 100
+        valor_apuesta2 = 200
+
         # Crear Competidor
         for i in range(0,2):
             probabilidad = 0.45
-       
             nombre_competidor = self.data_factory.name()
             creado=self.gestor.crear_competidor(carrera_id, nombre_competidor, probabilidad)
+            print("Creado ",str(i),str(creado))
             if creado:
                 competidor = self.session.query(Competidor).filter(Competidor.nombre == nombre_competidor).first().id
-                #print("Competidor id "+ str(competidor.id))
+                print("valores %s %s %s %s " + str(carrera_id),str(valor_apuesta), str(competidor), str(apostador_c[0].id) )
                 self.gestor.crear_apuesta(carrera_id,valor_apuesta, competidor, apostador_c[0].id)
                 self.gestor.crear_apuesta(carrera_id,valor_apuesta2, competidor, apostador_d[0].id)
-                
-        
+
+        #gana el segundo competidor siempre
         self.gestor.terminar_carrera(carrera_id, nombre_competidor)
-        
         resultado2 = self.gestor.calcular_ganancia_apostadores(carrera_id)
-        
-        
+
+
         self.assertEqual(resultado2[0]['nombre'], "Carlos Soler")
         self.assertEqual(resultado2[1]['nombre'], "Gabriel Arenas")
         self.assertEqual(resultado2[0]['valor'], 222.0)
         self.assertEqual(resultado2[1]['valor'], 444.0)
-    
-    def test_validar_ganancias_casa(self):
 
+
+
+
+    def test_validar_ganancia_casa(self):
         nombre_carrera = self.data_factory.bs();
         resultado = self.gestor.crear_carrera(nombre_carrera)
         carrera_id = self.session.query(Carrera).filter(Carrera.nombre == nombre_carrera).first().id_carrera
@@ -299,33 +311,67 @@ class CarreraTestCase(unittest.TestCase):
         self.session.add(apostador1)
         self.session.add(apostador2)
         self.session.commit()
-        valor_apuesta = 100
-        valor_apuesta2 = 200
         apostador_c = self.gestor.dar_apostadorPorNombre("Carlos Soler")
         apostador_d = self.gestor.dar_apostadorPorNombre('Gabriel Arenas')
+        valor_apuesta = 100
+        valor_apuesta2 = 200
+
         # Crear Competidor
         for i in range(0,2):
             probabilidad = 0.45
-       
             nombre_competidor = self.data_factory.name()
             creado=self.gestor.crear_competidor(carrera_id, nombre_competidor, probabilidad)
+            print("Creado ",str(i),str(creado))
             if creado:
                 competidor = self.session.query(Competidor).filter(Competidor.nombre == nombre_competidor).first().id
-                #print("Competidor id "+ str(competidor.id))
+                print("valores %s %s %s %s " + str(carrera_id),str(valor_apuesta), str(competidor), str(apostador_c[0].id) )
                 self.gestor.crear_apuesta(carrera_id,valor_apuesta, competidor, apostador_c[0].id)
                 self.gestor.crear_apuesta(carrera_id,valor_apuesta2, competidor, apostador_d[0].id)
-                
-        
+
+        #gana el segundo competidor siempre
         self.gestor.terminar_carrera(carrera_id, nombre_competidor)
-        
         resultado2 = self.gestor.calcular_ganancia_casa(carrera_id)
 
         self.assertEqual(resultado2, -66.0)
 
+    def test_eliminar_carrera_sin_id(self):
+        #resultado = self.gestor.crear_carrera(nombre="")
+        resultado = self.gestor.eliminar_carrera(0)
+        self.assertEqual(resultado, False)
 
+    def test_eliminar_carrera_sin_apuestas(self):
+        nombre_carrera = self.data_factory.bs();
+        resultado = self.gestor.crear_carrera(nombre_carrera)
+        carrera_id = self.session.query(Carrera).filter(Carrera.nombre == nombre_carrera).first().id_carrera
+        #print("consulta id= " + str(carrera_id))
 
+        # Crear Competidor
+        probabilidad = self.data_factory.pyfloat(1,2,0,0.0,1.0)
+        nombre_competidor = self.data_factory.name()
+        creado=self.gestor.crear_competidor(carrera_id, nombre_competidor, probabilidad)
+        if creado:
+            competidor = self.session.query(Competidor).filter(Competidor.nombre == nombre_competidor).first()
 
+        resultado = self.gestor.eliminar_carrera(carrera_id)
+        self.assertEqual(resultado, True)
 
-    
+    def test_eliminar_carrera_con_apuestas(self):
+        nombre_carrera = self.data_factory.bs();
+        resultado = self.gestor.crear_carrera(nombre_carrera)
+        carrera_id = self.session.query(Carrera).filter(Carrera.nombre == nombre_carrera).first().id_carrera
+        #print("consulta id= " + str(carrera_id))
+        for i in range(0,2):
+            probabilidad = 0.45
+            nombre_competidor = self.data_factory.name()
+            creado=self.gestor.crear_competidor(carrera_id, nombre_competidor, probabilidad)
+            print("Creado ",str(i),str(creado))
+            if creado:
+                competidor = self.session.query(Competidor).filter(Competidor.nombre == nombre_competidor).first().id
+                nombre_apostador1 = self.data_factory.name()
+                resultado2 = self.gestor.crear_apostador(nombre = nombre_apostador1)
+                apostador = self.gestor.dar_apostadorPorNombre(nombre_apostador1)
+                valor_apuesta = self.data_factory.pyint(0, 1000)
+                self.gestor.crear_apuesta(carrera_id,valor_apuesta, competidor, apostador[0].id)
 
-
+        resultado = self.gestor.eliminar_carrera(carrera_id)
+        self.assertEqual(resultado, False)
