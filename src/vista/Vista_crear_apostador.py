@@ -68,9 +68,15 @@ class Dialogo_crear_apostador(QDialog):
     def guardar(self):
         """
         Esta función envía la información de que se han guardado los cambios
-        """   
-        self.resultado=1
-        self.close()
+        """
+        nombre = self.texto_nombre.text()
+        if (len(nombre) <=0) or (len(nombre.strip())==0):
+            self.resultado=0
+            self.setWindowTitle("Nombre Invalido")
+        else:
+            self.resultado=1
+            self.close()
+
         return self.resultado
 
 
@@ -78,7 +84,8 @@ class Dialogo_crear_apostador(QDialog):
         """
         Esta función envía la información de que se ha cancelado la operación
         """   
-        self.resultado=0
+
+        self.resultado=o
         self.close()
         return self.resultado
 
